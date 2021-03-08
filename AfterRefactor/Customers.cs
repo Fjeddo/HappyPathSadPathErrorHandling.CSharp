@@ -1,6 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using System.Web.Http;
 using AfterRefactor.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -24,21 +22,11 @@ namespace AfterRefactor
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            try
-            {
-                var customer = await _customerService.GetCustomerById(id);
-                if (customer == null)
-                {
-                    return new NotFoundResult();
-                }
+            var customer = await _customerService.GetCustomerById(id);
 
-                return new OkObjectResult(customer);
-            }
-            catch (Exception e)
-            {
-                log.LogError(e, "Catching a exception");
-                return new InternalServerErrorResult();
-            }
+            return customer.State == 0 
+                ? (IActionResult) new OkObjectResult(customer.Data) 
+                : (IActionResult) new StatusCodeResult(customer.State);
         }
     }
 }
