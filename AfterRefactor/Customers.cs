@@ -25,8 +25,8 @@ namespace AfterRefactor
             var customer = await _customerService.GetCustomerById(id);
 
             return customer.State == 0 
-                ? (IActionResult) new OkObjectResult(customer.Data) 
-                : (IActionResult) new StatusCodeResult(customer.State);
+                ? new OkObjectResult(customer.Data) 
+                : new StatusCodeResult(customer.State);
         }
     }
 }
