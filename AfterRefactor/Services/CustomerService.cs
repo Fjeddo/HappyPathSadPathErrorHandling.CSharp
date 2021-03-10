@@ -16,17 +16,21 @@ namespace AfterRefactor.Services
             _log = log;
         }
 
-        public async Task<ServiceResult<Customer>> GetCustomerById(int id)
+        public async Task<(Customer customer, int status)> GetCustomerById(int id)
         {
-            var response = await _httpService.Get($"https://reqres.in/api/users/{id}");
-
-            if (response.Success)
+            var (success, body, statusCode) = await _httpService.Get($"https://reqres.in/api/users/{id}");
+            
+            if (success)
             {
-                return new ServiceResult<Customer>(0, new Customer(response.Body));
+                return _(new Customer(body));
             }
 
             _log.LogWarning("Something did not work out correctly");
-            return new ServiceResult<Customer>((int) response.Status, null);
+
+            return _((int)statusCode);
         }
+
+        static (Customer customer, int status) _(int status) => (null, status);
+        static (Customer customer, int status) _(Customer customer) => (customer, 0);
     }
 }

@@ -22,11 +22,11 @@ namespace AfterRefactor
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
-            var customer = await _customerService.GetCustomerById(id);
+            var (customer, status) = await _customerService.GetCustomerById(id);
 
-            return customer.State == 0 
-                ? new OkObjectResult(customer.Data) 
-                : new StatusCodeResult(customer.State);
+            return status == 0 
+                ? new OkObjectResult(customer) 
+                : new StatusCodeResult(status);
         }
     }
 }

@@ -17,43 +17,45 @@ namespace AfterRefactor.Infrastructure
             _httpClient = httpClient;
             _log = log;
         }
-        
-        public async Task<HttpResult> Get(string url)
+
+        public async Task<(bool success, JObject body, HttpStatusCode statusCode)> Get(string url)
         {
             try
             {
                 var response = await _httpClient.GetAsync(url);
 
                 var body = JObject.Parse(await response.Content.ReadAsStringAsync());
-                var status = response.StatusCode;
+                var statusCode = response.StatusCode;
                 var success = response.IsSuccessStatusCode;
 
-                return new HttpResult(success, body, status);
+                return (success, body, statusCode);
             }
             catch (InvalidOperationException e)
             {
                 _log.LogError("Returning a HttpStatusCode.BadRequest", e);
-                
-                return new HttpResult(false, null, HttpStatusCode.BadRequest);
+
+                return ErrorResult(HttpStatusCode.BadRequest);
             }
             catch (HttpRequestException e)
             {
                 _log.LogError("Returning a HttpStatusCode.BadGateway", e);
-                
-                return new HttpResult(false, null, HttpStatusCode.BadGateway);
+
+                return ErrorResult(HttpStatusCode.BadGateway);
             }
             catch (TaskCanceledException e)
             {
                 _log.LogError("Returning a HttpStatusCode.RequestTimeout", e);
-                
-                return new HttpResult(false, null, HttpStatusCode.RequestTimeout);
+
+                return ErrorResult(HttpStatusCode.RequestTimeout);
             }
             catch (Exception e)
             {
                 _log.LogError("Returning a HttpStatusCode.InternalServerError", e);
-                
-                return new HttpResult(false, null, HttpStatusCode.InternalServerError);
+
+                return ErrorResult(HttpStatusCode.InternalServerError);
             }
         }
+
+        private static (bool, JObject, HttpStatusCode) ErrorResult(HttpStatusCode statusCode) => (false, null, statusCode);
     }
 }
